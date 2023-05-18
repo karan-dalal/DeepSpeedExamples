@@ -184,7 +184,6 @@ def main():
         # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
         # torch.distributed.init_process_group(backend='nccl')
         deepspeed.init_distributed()
-
     args.global_rank = torch.distributed.get_rank()
 
     assert not args.offload, "zero-offload is not currently supported but coming soon!"
@@ -200,10 +199,8 @@ def main():
     # If passed along, set the training seed now.
     set_random_seed(args.seed)
     torch.distributed.barrier()
-
     tokenizer = load_hf_tokenizer(args.model_name_or_path, fast_tokenizer=True)
     tokenizer.pad_token = tokenizer.eos_token
-
     rm_model = create_critic_model(args.model_name_or_path,
                                    tokenizer,
                                    ds_config,

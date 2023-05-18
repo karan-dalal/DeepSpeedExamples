@@ -1,0 +1,80 @@
+Collecting deepspeed
+  Using cached deepspeed-0.9.2.tar.gz (779 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting hjson
+  Using cached hjson-3.1.0-py3-none-any.whl (54 kB)
+Collecting ninja
+  Using cached ninja-1.11.1-py2.py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.whl (145 kB)
+Collecting numpy
+  Downloading numpy-1.24.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (17.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 17.3/17.3 MB 49.2 MB/s eta 0:00:00
+Collecting packaging>=20.0
+  Using cached packaging-23.1-py3-none-any.whl (48 kB)
+Collecting psutil
+  Using cached psutil-5.9.5-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (282 kB)
+Collecting py-cpuinfo
+  Using cached py_cpuinfo-9.0.0-py3-none-any.whl (22 kB)
+Collecting pydantic<2.0.0
+  Downloading pydantic-1.10.7-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.1/3.1 MB 58.6 MB/s eta 0:00:00
+Collecting torch
+  Downloading torch-2.0.1-cp310-cp310-manylinux1_x86_64.whl (619.9 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 619.9/619.9 MB 3.6 MB/s eta 0:00:00
+Collecting tqdm
+  Using cached tqdm-4.65.0-py3-none-any.whl (77 kB)
+Collecting typing-extensions>=4.2.0
+  Using cached typing_extensions-4.5.0-py3-none-any.whl (27 kB)
+Collecting nvidia-nccl-cu11==2.14.3
+  Using cached nvidia_nccl_cu11-2.14.3-py3-none-manylinux1_x86_64.whl (177.1 MB)
+Collecting networkx
+  Using cached networkx-3.1-py3-none-any.whl (2.1 MB)
+Collecting nvidia-cudnn-cu11==8.5.0.96
+  Using cached nvidia_cudnn_cu11-8.5.0.96-2-py3-none-manylinux1_x86_64.whl (557.1 MB)
+Collecting nvidia-cublas-cu11==11.10.3.66
+  Using cached nvidia_cublas_cu11-11.10.3.66-py3-none-manylinux1_x86_64.whl (317.1 MB)
+Collecting nvidia-cuda-runtime-cu11==11.7.99
+  Using cached nvidia_cuda_runtime_cu11-11.7.99-py3-none-manylinux1_x86_64.whl (849 kB)
+Collecting nvidia-cufft-cu11==10.9.0.58
+  Using cached nvidia_cufft_cu11-10.9.0.58-py3-none-manylinux1_x86_64.whl (168.4 MB)
+Collecting jinja2
+  Using cached Jinja2-3.1.2-py3-none-any.whl (133 kB)
+Collecting nvidia-cusolver-cu11==11.4.0.1
+  Using cached nvidia_cusolver_cu11-11.4.0.1-2-py3-none-manylinux1_x86_64.whl (102.6 MB)
+Collecting nvidia-cuda-cupti-cu11==11.7.101
+  Using cached nvidia_cuda_cupti_cu11-11.7.101-py3-none-manylinux1_x86_64.whl (11.8 MB)
+Collecting sympy
+  Using cached sympy-1.12-py3-none-any.whl (5.7 MB)
+Collecting triton==2.0.0
+  Downloading triton-2.0.0-1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (63.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 63.3/63.3 MB 19.0 MB/s eta 0:00:00
+Collecting nvidia-cusparse-cu11==11.7.4.91
+  Using cached nvidia_cusparse_cu11-11.7.4.91-py3-none-manylinux1_x86_64.whl (173.2 MB)
+Collecting nvidia-cuda-nvrtc-cu11==11.7.99
+  Using cached nvidia_cuda_nvrtc_cu11-11.7.99-2-py3-none-manylinux1_x86_64.whl (21.0 MB)
+Collecting nvidia-nvtx-cu11==11.7.91
+  Using cached nvidia_nvtx_cu11-11.7.91-py3-none-manylinux1_x86_64.whl (98 kB)
+Collecting nvidia-curand-cu11==10.2.10.91
+  Using cached nvidia_curand_cu11-10.2.10.91-py3-none-manylinux1_x86_64.whl (54.6 MB)
+Collecting filelock
+  Using cached filelock-3.12.0-py3-none-any.whl (10 kB)
+Requirement already satisfied: setuptools in /data/yusun/anaconda3/envs/rlhf2/lib/python3.10/site-packages (from nvidia-cublas-cu11==11.10.3.66->torch->deepspeed) (66.0.0)
+Requirement already satisfied: wheel in /data/yusun/anaconda3/envs/rlhf2/lib/python3.10/site-packages (from nvidia-cublas-cu11==11.10.3.66->torch->deepspeed) (0.38.4)
+Collecting cmake
+  Using cached cmake-3.26.3-py2.py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (24.0 MB)
+Collecting lit
+  Using cached lit-16.0.5.tar.gz (138 kB)
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Collecting MarkupSafe>=2.0
+  Using cached MarkupSafe-2.1.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (25 kB)
+Collecting mpmath>=0.19
+  Using cached mpmath-1.3.0-py3-none-any.whl (536 kB)
+Building wheels for collected packages: deepspeed, lit
+Failed to build deepspeed lit
+Installing collected packages: py-cpuinfo, ninja, mpmath, lit, hjson, cmake, typing-extensions, tqdm, sympy, psutil, packaging, nvidia-nvtx-cu11, nvidia-nccl-cu11, nvidia-cusparse-cu11, nvidia-curand-cu11, nvidia-cufft-cu11, nvidia-cuda-runtime-cu11, nvidia-cuda-nvrtc-cu11, nvidia-cuda-cupti-cu11, nvidia-cublas-cu11, numpy, networkx, MarkupSafe, filelock, pydantic, nvidia-cusolver-cu11, nvidia-cudnn-cu11, jinja2, triton, torch, deepspeed
+  Running setup.py install for lit: started
+  Running setup.py install for lit: finished with status 'done'
+  Running setup.py install for deepspeed: started
+  Running setup.py install for deepspeed: finished with status 'done'
+Successfully installed MarkupSafe-2.1.2 cmake-3.26.3 deepspeed-0.9.2 filelock-3.12.0 hjson-3.1.0 jinja2-3.1.2 lit-16.0.5 mpmath-1.3.0 networkx-3.1 ninja-1.11.1 numpy-1.24.3 nvidia-cublas-cu11-11.10.3.66 nvidia-cuda-cupti-cu11-11.7.101 nvidia-cuda-nvrtc-cu11-11.7.99 nvidia-cuda-runtime-cu11-11.7.99 nvidia-cudnn-cu11-8.5.0.96 nvidia-cufft-cu11-10.9.0.58 nvidia-curand-cu11-10.2.10.91 nvidia-cusolver-cu11-11.4.0.1 nvidia-cusparse-cu11-11.7.4.91 nvidia-nccl-cu11-2.14.3 nvidia-nvtx-cu11-11.7.91 packaging-23.1 psutil-5.9.5 py-cpuinfo-9.0.0 pydantic-1.10.7 sympy-1.12 torch-2.0.1 tqdm-4.65.0 triton-2.0.0 typing-extensions-4.5.0

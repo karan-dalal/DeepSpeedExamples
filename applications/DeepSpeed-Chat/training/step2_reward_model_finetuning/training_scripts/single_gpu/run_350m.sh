@@ -13,6 +13,6 @@ if [ "$ZERO_STAGE" == "" ]; then
 fi
 mkdir -p $OUTPUT
 
-deepspeed --num_gpus 1 main.py --model_name_or_path facebook/opt-350m \
-   --num_padding_at_beginning 1 --weight_decay 0.1 --disable_dropout --gradient_accumulation_steps 4 --zero_stage $ZERO_STAGE \
+deepspeed --num_gpus 8 main.py --model_name_or_path facebook/opt-350m \
+   --data_path Dahoas/rm-static --num_padding_at_beginning 1 --weight_decay 0.1 --disable_dropout --gradient_accumulation_steps 4 --zero_stage $ZERO_STAGE \
    --deepspeed --output_dir $OUTPUT &> $OUTPUT/training.log

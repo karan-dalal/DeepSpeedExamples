@@ -43,6 +43,45 @@ class PromptRawDataset(object):
         return
 
 
+# Additional OpenAssist Dataset
+class OpenAssistDataset(PromptRawDataset):
+
+    def __init__(self, output_path, seed, local_rank, dataset_name):
+        super().__init__(output_path, seed, local_rank, dataset_name)
+        self.dataset_name = "OpenAssistant/oasst1"
+        self.dataset_name_clean = "OpenAssistant_oasst1"
+
+    def get_train_data(self):
+        return self.raw_datasets["train"]
+
+    def get_eval_data(self):
+        return self.raw_datasets["test"]
+
+    # The prompt should be in the format of: " Human: " + actual_prompt_sentence + " Assistant:"
+    def get_prompt(self, sample):
+        return
+
+    # The chosen response should be in the format of: " " + actual_response_sentence
+    def get_chosen(self, sample):
+        return
+
+    # The rejected response should be in the format of: " " + actual_response_sentence
+    # If the dataset does not have rejected response, return None
+    def get_rejected(self, sample):
+        return
+
+    def get_prompt_and_response(self, sample):
+        return sample['parent_id'], sample['text']
+
+    def get_label_value(self, sample, label):
+        if sample["labels"] is not None:
+            try:
+                return sample["labels"]["value"][sample["labels"]["name"].index(label)]
+            except ValueError:
+                return None
+        return None
+
+
 # English dataset
 class DahoasRmstaticDataset(PromptRawDataset):
 

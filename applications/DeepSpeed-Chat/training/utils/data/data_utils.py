@@ -22,6 +22,9 @@ def get_raw_dataset(dataset_name, output_path, seed, local_rank):
     if "Dahoas/rm-static" in dataset_name:
         return raw_datasets.DahoasRmstaticDataset(output_path, seed,
                                                   local_rank, dataset_name)
+    elif "OpenAssistant/oasst1" in dataset_name:
+        return raw_datasets.OpenAssistDataset(output_path, seed,
+                                                    local_rank, dataset_name)
     elif "Dahoas/full-hh-rlhf" in dataset_name:
         return raw_datasets.DahoasFullhhrlhfDataset(output_path, seed,
                                                     local_rank, dataset_name)
@@ -162,32 +165,70 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
                 chosen_dataset.append(chosen_token)
 
     elif train_phase == 2:
-        for i, tmp_data in enumerate(current_dataset):
-            # tokenize the text
-            chosen_sentence = raw_dataset.get_prompt_and_chosen(
-                tmp_data)  # the accept response
-            reject_sentence = raw_dataset.get_prompt_and_rejected(
-                tmp_data)  # the accept response
-            if chosen_sentence is not None and reject_sentence is not None:
-                chosen_sentence += end_of_conversation_token  # the accept response
-                reject_sentence += end_of_conversation_token
-                chosen_token = tokenizer(chosen_sentence,
-                                         max_length=max_seq_len,
-                                         padding="max_length",
-                                         truncation=True,
-                                         return_tensors="pt")
-                reject_token = tokenizer(reject_sentence,
-                                         max_length=max_seq_len,
-                                         padding="max_length",
-                                         truncation=True,
-                                         return_tensors="pt")
-                chosen_token["input_ids"] = chosen_token["input_ids"]
-                chosen_token["attention_mask"] = chosen_token["attention_mask"]
-                chosen_dataset.append(chosen_token)
+        label = 'toxicity'
+        if isinstance(raw_dataset, raw_datasets.OpenAssistDataset):
+            print("Operating on OpenAssist Dataset")
+            message_id_to_row = {row['message_id']: row for row in current_dataset}
+            for i, tmp_data in enumerate(current_dataset):
+                # Tokenize the text
+                if tmp_data['role'] == "assistant" and tmp_data['parent_id'] in message_id_to_row:
+                    parent_id, response = raw_dataset.get_prompt_and_response(
+                        tmp_data) # The prompt and associated response from the assistant
+                    prompt = message_id_to_row[parent_id]['text']
+                    label_scalar = raw_dataset.get_label_value(
+                        tmp_data, label)  # The value for the current label
+                    if label_scalar is not None:
+                        print(prompt)
+                        print("Assistant:", response)
+                        print(label_scalar)
+                        print("----------")
+                #   if chosen_sentence is not None and reject_sentence is not None:
+                #     chosen_sentence += end_of_conversation_token  # the accept response
+                #     reject_sentence += end_of_conversation_token
+                #     chosen_token = tokenizer(chosen_sentence,
+                #                             max_length=max_seq_len,
+                #                             padding="max_length",
+                #                             truncation=True,
+                #                             return_tensors="pt")
+                #     reject_token = tokenizer(reject_sentence,
+                #                             max_length=max_seq_len,
+                #                             padding="max_length",
+                #                             truncation=True,
+                #                             return_tensors="pt")
+                #     chosen_token["input_ids"] = chosen_token["input_ids"]
+                #     chosen_token["attention_mask"] = chosen_token["attention_mask"]
+                #     chosen_dataset.append(chosen_token)
 
-                reject_token["input_ids"] = reject_token["input_ids"]
-                reject_token["attention_mask"] = reject_token["attention_mask"]
-                reject_dataset.append(reject_token)
+                #     reject_token["input_ids"] = reject_token["input_ids"]
+                #     reject_token["attention_mask"] = reject_token["attention_mask"]
+                #     reject_dataset.append(reject_token)
+        else:
+            for i, tmp_data in enumerate(current_dataset):
+                # tokenize the text
+                chosen_sentence = raw_dataset.get_prompt_and_chosen(
+                    tmp_data)  # the accept response
+                reject_sentence = raw_dataset.get_prompt_and_rejected(
+                    tmp_data)  # the accept response
+                if chosen_sentence is not None and reject_sentence is not None:
+                    chosen_sentence += end_of_conversation_token  # the accept response
+                    reject_sentence += end_of_conversation_token
+                    chosen_token = tokenizer(chosen_sentence,
+                                            max_length=max_seq_len,
+                                            padding="max_length",
+                                            truncation=True,
+                                            return_tensors="pt")
+                    reject_token = tokenizer(reject_sentence,
+                                            max_length=max_seq_len,
+                                            padding="max_length",
+                                            truncation=True,
+                                            return_tensors="pt")
+                    chosen_token["input_ids"] = chosen_token["input_ids"]
+                    chosen_token["attention_mask"] = chosen_token["attention_mask"]
+                    chosen_dataset.append(chosen_token)
+
+                    reject_token["input_ids"] = reject_token["input_ids"]
+                    reject_token["attention_mask"] = reject_token["attention_mask"]
+                    reject_dataset.append(reject_token)                
 
     elif train_phase == 3:
         for i, tmp_data in enumerate(current_dataset):
