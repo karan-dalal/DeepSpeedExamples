@@ -134,6 +134,7 @@ class PromptDataset(Dataset):
                 "labels": self.chosen_dataset[idx]["input_ids"]
             }
         elif self.train_phase == 2:
+            # Modifications to the get item method (reject dataset = labelled values)
             return self.chosen_dataset[idx]["input_ids"], self.chosen_dataset[idx]["attention_mask"], self.reject_dataset[idx]
         elif self.train_phase == 3:
             return self.prompt_dataset[idx]["input_ids"],self.prompt_dataset[idx]["attention_mask"], \
@@ -188,9 +189,6 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
                         prompt_and_response_token["attention_mask"] = prompt_and_response_token["attention_mask"]
                         chosen_dataset.append(prompt_and_response_token)
                         reject_dataset.append(label_scalar)
-                        # print(prompt_and_response)
-                        # print(label_scalar)
-                        # print("----------")
         else:
             for i, tmp_data in enumerate(current_dataset):
                 # tokenize the text
@@ -367,10 +365,11 @@ class DataCollatorReward:
 
     def __call__(self, data):
         batch = {}
-        batch["input_ids"] = torch.cat([f[0] for f in data], dim=0)
+        # Modifications to Data Collator
+        batch["input_ids"] = torch.cat([f[0] for f in data], dim=0) 
         batch["attention_mask"] = torch.cat([f[1] for f in data], dim=0)
         batch["label_rewards"] = [f[2] for f in data]
-        # print("Testing", batch["label_rewards"][0])
+
         # batch["input_ids"] = torch.cat([f[0]
         #                                 for f in data] + [f[2] for f in data],
         #                                dim=0)

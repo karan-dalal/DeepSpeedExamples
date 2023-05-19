@@ -251,11 +251,12 @@ def main():
             with torch.no_grad():
                 outputs = model(**batch)
 
-            chosen = outputs["chosen_mean_scores"]
-            rejected = outputs["rejected_mean_scores"]
-            correct_predictions += (chosen > rejected).sum()
-            total_predictions += chosen.shape[0]
-            scores += outputs["chosen_mean_scores"].mean().float()
+            preds = outputs["pred_end_scores"]
+            acts = outputs["act_end_scores"]
+            threshold = 0.1
+            correct_predictions += ((preds >= acts - threshold) & (preds <= acts + threshold)).sum()
+            total_predictions += preds.shape[0]
+            scores += outputs["pred_end_scores"].mean().float()
             if step == 99:  # For faster evaluation and debugging
                 break
         acc = correct_predictions / total_predictions
@@ -311,10 +312,10 @@ def main():
         rm_model.train()
         mean_loss = 0
         for step, batch in enumerate(train_dataloader):
-            print(batch.size)
             batch = to_device(batch, device)
             outputs = rm_model(**batch, use_cache=False)
             loss = outputs["loss"]
+            print_rank_0("Loss", loss)
             rm_model.backward(loss)
             rm_model.step()
             mean_loss += loss.item()
