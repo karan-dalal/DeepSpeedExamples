@@ -150,8 +150,8 @@ def run_single_sample():
                                      args.num_padding_at_beginning)
     rm_model.to(device)
 
-    prompt = "Human: Explain the moon landing to a 6 year old in a few sentences."
-    my_ans = "Assistant: The moon landing was a major milestone in the history of human exploration of the solar system. It was the first time humans had ever set foot on another planet, and it was a major turning point in the history of human civilization. The astronauts, Neil Armstrong, Buzz Aldrin, and Michael Collins, successfully landed the Apollo 11 spacecraft on the moon, marking the first time humans had ever set foot on another"
+    prompt = "Human: ----"
+    my_ans = "Assistant: -----"
 
     batch = prepare_singlesample(prompt,
                                  my_ans,
@@ -171,9 +171,9 @@ def run_single_sample():
     print("my_ans: ", my_ans)
     print()
     print("=============Scores========================")
-    print("my_ans score: ", outputs["chosen_end_scores"].item())
+    print("my_ans score: ", outputs["values"].item())
 
 
 if __name__ == "__main__":
-    run_pair_comparison()
-    # run_single_sample()
+    # run_pair_comparison()
+    run_single_sample()

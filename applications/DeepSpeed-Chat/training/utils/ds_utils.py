@@ -1,5 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # SPDX-License-Identifier: Apache-2.0
+import datetime
+import os
 
 # DeepSpeed Team
 GLOBAL_BATCH_SIZE = 32
@@ -18,6 +20,10 @@ def get_train_ds_config(offload,
                         tensorboard_output_path='./output/tensorboard'):
 
     device = "cpu" if offload else "none"
+    run_id = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_dir = os.path.join('./output/tensorboard', run_id)
+
+    os.makedirs(output_dir, exist_ok=True)
     zero_opt_dict = {
         "stage": stage,
         "offload_param": {
@@ -53,7 +59,7 @@ def get_train_ds_config(offload,
         },
         "tensorboard": {
             "enabled": enable_tensorboard,
-            "output_path": tensorboard_output_path
+            "output_path": output_dir
         }
     }
 

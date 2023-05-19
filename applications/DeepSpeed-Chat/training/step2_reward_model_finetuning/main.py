@@ -229,7 +229,6 @@ def main():
     else:
         train_sampler = DistributedSampler(train_dataset)
         eval_sampler = DistributedSampler(eval_dataset)
-    print_rank_0("Creating DataLoaders")
     train_dataloader = DataLoader(train_dataset,
                                   collate_fn=data_collator,
                                   sampler=train_sampler,
@@ -239,7 +238,6 @@ def main():
                                  collate_fn=data_collator,
                                  sampler=eval_sampler,
                                  batch_size=args.per_device_eval_batch_size)
-    print_rank_0("Dataloaders Created")
 
     def evaluation_reward(model, eval_dataloader):
         model.eval()
@@ -315,10 +313,10 @@ def main():
             batch = to_device(batch, device)
             outputs = rm_model(**batch, use_cache=False)
             loss = outputs["loss"]
-            print_rank_0("Loss", loss)
             rm_model.backward(loss)
             rm_model.step()
             mean_loss += loss.item()
+        
         print_rank_0(
             f"Epoch {epoch+1}/{args.num_train_epochs} with loss {mean_loss/(step+1)}",
             args.global_rank)

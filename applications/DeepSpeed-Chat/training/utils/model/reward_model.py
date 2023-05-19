@@ -124,6 +124,6 @@ class RewardModel(nn.Module):
                     c_inds) > 0 else seq_len
                 chosen_end_scores.append(value[c_ind - 1])
             return {
-                "values": values,
+                "values": torch.sigmoid(values.mean()),
                 "chosen_end_scores": torch.stack(chosen_end_scores),
             }
