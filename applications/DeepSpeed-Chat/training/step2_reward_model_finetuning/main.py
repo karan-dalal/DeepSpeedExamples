@@ -219,6 +219,7 @@ def main():
         args.local_rank, args.data_path, args.data_split,
         args.data_output_path, train_phase, args.seed, tokenizer,
         args.max_seq_len)
+    print_rank_0("Succesfully created database with get returns")
 
     # DataLoaders creation:
     data_collator = DataCollatorReward()
@@ -228,6 +229,7 @@ def main():
     else:
         train_sampler = DistributedSampler(train_dataset)
         eval_sampler = DistributedSampler(eval_dataset)
+    print_rank_0("Creating DataLoaders")
     train_dataloader = DataLoader(train_dataset,
                                   collate_fn=data_collator,
                                   sampler=train_sampler,
@@ -237,6 +239,7 @@ def main():
                                  collate_fn=data_collator,
                                  sampler=eval_sampler,
                                  batch_size=args.per_device_eval_batch_size)
+    print_rank_0("Dataloaders Created")
 
     def evaluation_reward(model, eval_dataloader):
         model.eval()
@@ -267,12 +270,10 @@ def main():
     # Split weights in two groups, one with weight decay and the other not.
     optimizer_grouped_parameters = get_optimizer_grouped_parameters(
         rm_model, args.weight_decay)
-
     AdamOptimizer = DeepSpeedCPUAdam if args.offload else FusedAdam
     optimizer = AdamOptimizer(optimizer_grouped_parameters,
                               lr=args.learning_rate,
                               betas=(0.9, 0.95))
-
     num_update_steps_per_epoch = math.ceil(
         len(train_dataloader) / args.gradient_accumulation_steps)
 
@@ -282,7 +283,6 @@ def main():
         num_warmup_steps=args.num_warmup_steps,
         num_training_steps=args.num_train_epochs * num_update_steps_per_epoch,
     )
-
     rm_model, optimizer, _, lr_scheduler = deepspeed.initialize(
         model=rm_model,
         optimizer=optimizer,
@@ -293,7 +293,6 @@ def main():
 
     if args.gradient_checkpointing:
         rm_model.gradient_checkpointing_enable()
-
     # Train!
     print_rank_0("***** Running training *****", args.global_rank)
 
@@ -312,6 +311,7 @@ def main():
         rm_model.train()
         mean_loss = 0
         for step, batch in enumerate(train_dataloader):
+            print(batch.size)
             batch = to_device(batch, device)
             outputs = rm_model(**batch, use_cache=False)
             loss = outputs["loss"]

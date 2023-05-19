@@ -55,7 +55,7 @@ class OpenAssistDataset(PromptRawDataset):
         return self.raw_datasets["train"]
 
     def get_eval_data(self):
-        return self.raw_datasets["test"]
+        return self.raw_datasets["validation"]
 
     # The prompt should be in the format of: " Human: " + actual_prompt_sentence + " Assistant:"
     def get_prompt(self, sample):
