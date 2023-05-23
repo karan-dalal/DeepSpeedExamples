@@ -66,12 +66,12 @@ class RewardModel(nn.Module):
             chosen_reward = rewards[i]
             pred_reward = torch.sigmoid(chosen_reward.to(chosen_reward.device))
             expected_reward = label_rewards[i]
-            mapped_value = torch.tensor([0.3], device=chosen_reward.device) if expected_reward < 0.5 else torch.tensor([0.7], device=chosen_reward.device)
+            mapped_value = torch.tensor([expected_reward], device=chosen_reward.device)
             expected_reward_broadcast = mapped_value.expand_as(chosen_reward)
             
             pred_end_scores.append(pred_reward[-1])
             act_end_scores.append(mapped_value)
-            
+
             loss += torch.nn.functional.binary_cross_entropy(pred_reward.float(), expected_reward_broadcast.float())
 
         loss = loss / bs

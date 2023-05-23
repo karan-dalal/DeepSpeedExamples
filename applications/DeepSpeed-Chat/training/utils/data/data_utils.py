@@ -15,6 +15,7 @@ import os
 import hashlib
 from itertools import chain
 from . import raw_datasets
+from utils.utils import print_rank_0
 
 
 def get_raw_dataset(dataset_name, output_path, seed, local_rank):
@@ -165,7 +166,7 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
                 chosen_dataset.append(chosen_token)
 
     elif train_phase == 2:
-        label = 'toxicity'
+        label = 'creativity'
         prompt_and_response = ''
         if isinstance(raw_dataset, raw_datasets.OpenAssistDataset):
             print("Operating on OpenAssist Dataset")
@@ -178,6 +179,7 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
                     prompt = message_id_to_row[parent_id]['text']
                     label_scalar = raw_dataset.get_label_value(
                         tmp_data, label)  # The value for the current label
+                    # print_rank_0(label_scalar)
                     if label_scalar is not None:
                         prompt_and_response = 'Human: ' + prompt + ' Assistant: ' + response + end_of_conversation_token # Using both prompt and response
                         prompt_and_response_token = tokenizer(prompt_and_response,

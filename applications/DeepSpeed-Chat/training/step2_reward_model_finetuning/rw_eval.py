@@ -150,8 +150,8 @@ def run_single_sample():
                                      args.num_padding_at_beginning)
     rm_model.to(device)
 
-    prompt = "Human: ----"
-    my_ans = "Assistant: -----"
+    prompt="How would the Future of AI in 10 Years look?"
+    my_ans="I don't know"
 
     batch = prepare_singlesample(prompt,
                                  my_ans,
