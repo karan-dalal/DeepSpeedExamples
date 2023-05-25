@@ -223,6 +223,7 @@ def main():
         args.data_output_path, train_phase, args.seed, tokenizer,
         args.max_seq_len)
 
+    print_rank_0("This is size", len(train_dataset))
     # DataLoaders creation:
     data_collator = DataCollatorReward()
     if args.local_rank == -1:
@@ -303,11 +304,11 @@ def main():
     print_rank_0(
         f"***** Evaluating reward, Epoch {0}/{args.num_train_epochs} *****",
         args.global_rank)
-    reward_score, acc = evaluation_reward(rm_model, eval_dataloader)
-    print_rank_0(
-        f"chosen_last_scores (higher is better) : {reward_score}, acc (higher is better) : {acc}",
-        args.global_rank)
-
+    
+    # reward_score, acc = evaluation_reward(rm_model, eval_dataloader)
+    # print_rank_0(
+    #     f"chosen_last_scores (higher is better) : {reward_score}, acc (higher is better) : {acc}",
+    #     args.global_rank)
     for epoch in range(args.num_train_epochs):
         print_rank_0(
             f"Beginning of Epoch {epoch+1}/{args.num_train_epochs}, Total Micro Batches {len(train_dataloader)}",
@@ -321,17 +322,18 @@ def main():
             rm_model.backward(loss)
             rm_model.step()
             mean_loss += loss.item()
+        
         print_rank_0(
             f"Epoch {epoch+1}/{args.num_train_epochs} with loss {mean_loss/(step+1)}",
             args.global_rank)
         # Evaluate reward_loss on the validation set.
-        print_rank_0(
-            f"***** Evaluating reward, Epoch {epoch+1}/{args.num_train_epochs} *****",
-            args.global_rank)
-        reward_score, acc = evaluation_reward(rm_model, eval_dataloader)
-        print_rank_0(
-            f"chosen_last_scores (higher is better) : {reward_score}, acc (higher is better) : {acc}",
-            args.global_rank)
+        # print_rank_0(
+        #     f"***** Evaluating reward, Epoch {epoch+1}/{args.num_train_epochs} *****",
+        #     args.global_rank)
+        # reward_score, acc = evaluation_reward(rm_model, eval_dataloader)
+        # print_rank_0(
+        #     f"chosen_last_scores (higher is better) : {reward_score}, acc (higher is better) : {acc}",
+        #     args.global_rank)
         rm_model.tput_timer.update_epoch_count()
 
     if args.output_dir is not None:

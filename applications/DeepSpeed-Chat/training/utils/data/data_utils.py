@@ -22,6 +22,9 @@ def get_raw_dataset(dataset_name, output_path, seed, local_rank):
     if "Dahoas/rm-static" in dataset_name:
         return raw_datasets.DahoasRmstaticDataset(output_path, seed,
                                                   local_rank, dataset_name)
+    elif "HuggingFaceH4/hhh_alignment" in dataset_name:
+        return raw_datasets.AligmentDataset(output_path, seed, 
+                                                    local_rank, dataset_name)
     elif "Dahoas/full-hh-rlhf" in dataset_name:
         return raw_datasets.DahoasFullhhrlhfDataset(output_path, seed,
                                                     local_rank, dataset_name)
@@ -163,14 +166,14 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
                 chosen_token["attention_mask"] = chosen_token[
                     "attention_mask"].squeeze(0)
                 chosen_dataset.append(chosen_token)
-
+    
     elif train_phase == 2:
         for i, tmp_data in enumerate(current_dataset):
             # tokenize the text
             chosen_sentence = raw_dataset.get_prompt_and_chosen(
                 tmp_data)  # the accept response
             reject_sentence = raw_dataset.get_prompt_and_rejected(
-                tmp_data)  # the accept response
+                tmp_data)  # the reject response
             if chosen_sentence is not None and reject_sentence is not None:
                 chosen_sentence += end_of_conversation_token  # the accept response
                 reject_sentence += end_of_conversation_token
@@ -218,28 +221,33 @@ def create_dataset(local_rank, dataset_name, data_split, output_path,
                    train_phase, seed, tokenizer, end_of_conversation_token,
                    max_seq_len):
     raw_dataset = get_raw_dataset(dataset_name, output_path, seed, local_rank)
+    raw_dataset.set_new_raw()
+
+    print("This raw", raw_dataset)
     train_dataset = raw_dataset.get_train_data()
-    train_index = get_raw_dataset_split_index(local_rank, output_path,
-                                              raw_dataset.dataset_name_clean,
-                                              seed, "train", data_split,
-                                              train_phase - 1,
-                                              len(train_dataset))
-    train_dataset = Subset(train_dataset, train_index)
+    # train_index = get_raw_dataset_split_index(local_rank, output_path,
+    #                                           raw_dataset.dataset_name_clean,
+    #                                           seed, "train", data_split,
+    #                                           train_phase - 1,
+    #                                           len(train_dataset))
+    # train_dataset = Subset(train_dataset, train_index)
     train_dataset = create_dataset_split(train_dataset, raw_dataset,
                                          train_phase, tokenizer,
                                          end_of_conversation_token,
                                          max_seq_len)
 
     eval_dataset = raw_dataset.get_eval_data()
-    eval_index = get_raw_dataset_split_index(local_rank, output_path,
-                                             raw_dataset.dataset_name_clean,
-                                             seed, "eval",
-                                             data_split, train_phase - 1,
-                                             len(eval_dataset))
-    eval_dataset = Subset(eval_dataset, eval_index)
+    # eval_index = get_raw_dataset_split_index(local_rank, output_path,
+    #                                          raw_dataset.dataset_name_clean,
+    #                                          seed, "eval",
+    #                                          data_split, train_phase - 1,
+    #                                          len(eval_dataset))
+    # eval_dataset = Subset(eval_dataset, eval_index)
     eval_dataset = create_dataset_split(eval_dataset, raw_dataset, train_phase,
                                         tokenizer, end_of_conversation_token,
                                         max_seq_len)
+    print(len(train_dataset))
+    print(len(eval_dataset))
     return train_dataset, eval_dataset
 
 
