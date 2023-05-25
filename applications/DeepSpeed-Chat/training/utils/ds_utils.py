@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # DeepSpeed Team
+import datetime
+import os
+
 GLOBAL_BATCH_SIZE = 32
 MICRO_BATCH_SIZE = 4
 
@@ -13,9 +16,14 @@ def get_train_ds_config(offload,
                         release_inference_cache=False,
                         pin_parameters=True,
                         tp_gather_partition_size=8,
+                        enable_tensorboard = True,
                         max_out_tokens=512):
 
     device = "cpu" if offload else "none"
+    run_id = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_dir = os.path.join('./output/tensorboard', run_id)
+    os.makedirs(output_dir, exist_ok=True)
+
     zero_opt_dict = {
         "stage": stage,
         "offload_param": {
@@ -39,6 +47,10 @@ def get_train_ds_config(offload,
             "loss_scale_window": 100
         },
         "gradient_clipping": 1.0,
+        "tensorboard": {
+            "enabled": enable_tensorboard,
+            "output_path": output_dir
+        },
         "prescale_gradients": False,
         "wall_clock_breakdown": False,
         "hybrid_engine": {
