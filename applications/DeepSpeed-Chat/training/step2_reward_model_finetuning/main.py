@@ -219,7 +219,6 @@ def main():
         args.local_rank, args.data_path, args.data_split,
         args.data_output_path, train_phase, args.seed, tokenizer,
         args.max_seq_len)
-    print_rank_0("Succesfully created database with get returns")
 
     # DataLoaders creation:
     data_collator = DataCollatorReward()

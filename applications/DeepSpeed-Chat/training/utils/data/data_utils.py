@@ -16,6 +16,8 @@ import hashlib
 from itertools import chain
 from . import raw_datasets
 from utils.utils import print_rank_0
+import random
+import matplotlib.pyplot as plt
 
 
 def get_raw_dataset(dataset_name, output_path, seed, local_rank):
@@ -166,31 +168,29 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
                 chosen_dataset.append(chosen_token)
 
     elif train_phase == 2:
-        label = 'creativity'
+        labels = ['quality']
         prompt_and_response = ''
         if isinstance(raw_dataset, raw_datasets.OpenAssistDataset):
-            print("Operating on OpenAssist Dataset")
             message_id_to_row = {row['message_id']: row for row in current_dataset}
             for i, tmp_data in enumerate(current_dataset):
                 # Tokenize the text
                 if tmp_data['role'] == "assistant" and tmp_data['parent_id'] in message_id_to_row:
-                    parent_id, response = raw_dataset.get_prompt_and_response(
-                        tmp_data) # The prompt and associated response from the assistant
+                    parent_id, response = raw_dataset.get_prompt_and_response(tmp_data) # The prompt and associated response from the assistant
                     prompt = message_id_to_row[parent_id]['text']
-                    label_scalar = raw_dataset.get_label_value(
-                        tmp_data, label)  # The value for the current label
+                    label_dict = raw_dataset.get_label_value(tmp_data, labels)  # The value for the current label
                     # print_rank_0(label_scalar)
-                    if label_scalar is not None:
-                        prompt_and_response = 'Human: ' + prompt + ' Assistant: ' + response + end_of_conversation_token # Using both prompt and response
-                        prompt_and_response_token = tokenizer(prompt_and_response,
-                                                            max_length=max_seq_len,
-                                                            padding="max_length",
-                                                            truncation=True,
-                                                            return_tensors="pt")
-                        prompt_and_response_token["input_ids"] = prompt_and_response_token["input_ids"]
-                        prompt_and_response_token["attention_mask"] = prompt_and_response_token["attention_mask"]
-                        chosen_dataset.append(prompt_and_response_token)
-                        reject_dataset.append(label_scalar)
+                    if label_dict is not None:
+                        for label, value in label_dict.items():
+                            prompt_and_response = 'Evaluate based on the following label: ' + label + '. Human: ' + prompt + ' Assistant: ' + response + end_of_conversation_token # Using both prompt and response
+                            prompt_and_response_token = tokenizer(prompt_and_response,
+                                                                max_length=max_seq_len,
+                                                                padding="max_length",
+                                                                truncation=True,
+                                                                return_tensors="pt")
+                            prompt_and_response_token["input_ids"] = prompt_and_response_token["input_ids"]
+                            prompt_and_response_token["attention_mask"] = prompt_and_response_token["attention_mask"]
+                            chosen_dataset.append(prompt_and_response_token)
+                            reject_dataset.append(value)
         else:
             for i, tmp_data in enumerate(current_dataset):
                 # tokenize the text
@@ -237,7 +237,33 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
                         y = prompt_token[key_word].squeeze(0).flip(0)
                     prompt_token[key_word] = y
                 prompt_dataset.append(prompt_token)
-    return PromptDataset(prompt_dataset, chosen_dataset, reject_dataset,
+    
+    # bins = np.linspace(0, 1, 11)
+    # ratios = [1., 0.74748219, 0.95087202, 0.89609433, 0.53303857, 1.12281995, 0.42237779, 0.33468435, 0.17575534, 0.16838615]
+    # clipped_chosen_dataset = []
+    # clipped_reject_dataset = []
+
+    # # Indices is a list the len of reject_dataset where each index is the bin that value belongs to
+    # indices = np.digitize(reject_dataset, bins) - 1
+
+    # # Counts is a list of length bins that contains the number of counts in each bin
+    # counts = np.bincount(indices, minlength=len(bins)-1)
+    # target_counts = [int(counts[0] * ratio) for ratio in ratios]
+
+    # for i in range(10):
+    #     current_bin_indices = [index for index, bin_index in enumerate(indices) if bin_index == i]
+       
+    #     if len(current_bin_indices) > 1200:
+    #         current_bin_indices = random.sample(current_bin_indices, 1200)            
+        
+    #     clipped_chosen_dataset.extend([chosen_dataset[i] for i in current_bin_indices])
+    #     clipped_reject_dataset.extend([reject_dataset[i] for i in current_bin_indices])
+
+    values = np.array(reject_dataset)
+    standardized_data = (values - np.mean(values)) / np.std(values)
+    normalized_data = (standardized_data - np.min(standardized_data)) / (np.max(standardized_data) - np.min(standardized_data))        
+    
+    return PromptDataset(prompt_dataset, chosen_dataset, normalized_data,
                          tokenizer.pad_token_id, train_phase)
 
 

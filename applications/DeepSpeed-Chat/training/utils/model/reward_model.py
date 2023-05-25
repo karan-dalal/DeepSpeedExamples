@@ -67,7 +67,7 @@ class RewardModel(nn.Module):
             pred_reward = torch.sigmoid(chosen_reward.to(chosen_reward.device))
             expected_reward = label_rewards[i]
             mapped_value = torch.tensor([expected_reward], device=chosen_reward.device)
-            expected_reward_broadcast = mapped_value.expand_as(chosen_reward)
+            expected_reward_broadcast = mapped_value.expand_as(pred_reward)
             
             pred_end_scores.append(pred_reward[-1])
             act_end_scores.append(mapped_value)

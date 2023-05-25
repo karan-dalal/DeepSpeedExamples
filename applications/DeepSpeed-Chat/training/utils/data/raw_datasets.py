@@ -5,6 +5,7 @@
 from datasets import load_dataset
 from torch.utils.data import Subset
 import re
+import random
 
 
 # The template prompt dataset class that all new dataset porting needs to
@@ -73,10 +74,23 @@ class OpenAssistDataset(PromptRawDataset):
     def get_prompt_and_response(self, sample):
         return sample['parent_id'], sample['text']
 
-    def get_label_value(self, sample, label):
+    def get_label_value(self, sample, labels):
         if sample["labels"] is not None:
             try:
-                return sample["labels"]["value"][sample["labels"]["name"].index(label)]
+                label_value_pairs = {}
+                for label in labels:
+                    if label in sample["labels"]["name"]:
+                        label_index = sample["labels"]["name"].index(label)
+                        label_value = sample["labels"]["value"][label_index]
+                        label_value_pairs[label] = label_value
+                if label_value_pairs:
+                    # if len(label_value_pairs) == 2:
+                        # random_key = random.choice(list(label_value_pairs.keys()))
+                        # random_value = label_value_pairs[random_key]
+                        # return {random_key: random_value}
+                    return label_value_pairs
+                else:
+                    return None
             except ValueError:
                 return None
         return None

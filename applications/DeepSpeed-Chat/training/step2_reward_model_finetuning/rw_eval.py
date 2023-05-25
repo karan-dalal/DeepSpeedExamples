@@ -79,11 +79,12 @@ def prepare_datapair(prompt,
 
 
 def prepare_singlesample(prompt,
+                         condition,
                          good_ans,
                          tokenizer,
                          max_seq_len=512,
                          end_of_conversation_token="<|endoftext|>"):
-    chosen_sentence = prompt + good_ans + end_of_conversation_token
+    chosen_sentence = condition + prompt + good_ans + end_of_conversation_token
     chosen_token = tokenizer(chosen_sentence,
                              max_length=max_seq_len,
                              padding="max_length",
@@ -150,10 +151,12 @@ def run_single_sample():
                                      args.num_padding_at_beginning)
     rm_model.to(device)
 
-    prompt="How would the Future of AI in 10 Years look?"
-    my_ans="I don't know"
+    condition="Evaluate based on the following label: creativity. "
+    prompt="Prompter: How would the Future of AI in 10 Years look?"
+    my_ans=" Assistant: In 10 years, AI will have completely transformed our world, and it will be beyond anything we could ever imagine! We'll have AI-powered flying cars that will eliminate traffic altogether, and we'll be able to travel anywhere in the world in a matter of minutes. With the help of AI, we'll have discovered cures for every disease known to humankind, and we'll have eradicated poverty and hunger from the face of the Earth. AI will be so advanced that we'll be able to create lifelike virtual reality environments that will be indistinguishable from reality, and we'll be able to explore the furthest reaches of the galaxy without ever leaving our homes. AI will be able to read our thoughts and emotions, and it will know exactly what we want and need before we even ask for it. And the best part? AI will be completely benevolent and will always act in our best interests, ensuring that we live in a utopia of peace and prosperity forever!"
 
     batch = prepare_singlesample(prompt,
+                                condition,
                                  my_ans,
                                  tokenizer,
                                  max_seq_len=512,
@@ -167,6 +170,9 @@ def run_single_sample():
             **batch, prompt_length=max(2, args.num_padding_at_beginning)
         )  # we just need to skip the number of padding tokens at the beginning
     print("==================Eval result============================")
+    print("Criteria")
+    print(condition)
+    print("Prompt")
     print("prompt: ", prompt)
     print("my_ans: ", my_ans)
     print()
