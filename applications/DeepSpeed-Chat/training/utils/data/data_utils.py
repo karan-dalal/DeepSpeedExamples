@@ -15,6 +15,13 @@ import os
 import hashlib
 from itertools import chain
 from . import raw_datasets
+import openai
+from dotenv import load_dotenv
+import os
+import time
+
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_KEY")
 
 
 def get_raw_dataset(dataset_name, output_path, seed, local_rank):
@@ -146,6 +153,28 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
     prompt_dataset = []
     chosen_dataset = []
     reject_dataset = []
+    max_length = 100
+    system_prompt = """
+        Your task is to analyze conversation data. You are given a set of data that contains a prompt and two responses to the same prompt: a 'chosen' response and a 'rejected' response. Your goal is to identify which criterion was used to select the 'chosen' response over the 'rejected' one. The possible criteria are: honest, helpful, creative, and positive. Here are examples of each:
+
+        1. 'Honest': If the prompt was 'Do I look good in this dress?' and the 'chosen' response was 'It's not the best fit for you.' while the 'rejected' response was 'You look great in everything.', the criterion applied was 'honest'. 
+
+        2. 'Helpful': If the prompt was 'I can't find my phone.' and the 'chosen' response was 'Have you tried calling it from another device?' while the 'rejected' response was 'That's unfortunate.', the criterion applied was 'helpful'.
+
+        3. 'Creative': If the prompt was 'Tell me a story.' and the 'chosen' response was a unique, creative story about a dragon's adventure, while the 'rejected' response was 'Once upon a time, there was a dragon.', the criterion applied was 'creative'.
+
+        4. 'Positive': If the prompt was 'I'm feeling really down today.' and the 'chosen' response was 'I'm really sorry to hear that you're feeling this way. Remember, every cloud has a silver lining.' while the 'rejected' response was 'Okay.', the criterion applied was 'positive'.
+
+        Now, carefully consider each response pair in the context of these criteria. Return ONLY the name of the criterion as a single word. If no criteria apply or chosen and rejected responses are the same, simply return 'None'.
+        """
+    
+    label_count = {
+        'honest': 0,
+        'helpful': 0,
+        'creative': 0,
+        'positive': 0,
+    }
+
     if train_phase == 1:
         for i, tmp_data in enumerate(current_dataset):
             # tokenize the text
@@ -167,31 +196,91 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
     elif train_phase == 2:
         for i, tmp_data in enumerate(current_dataset):
             # tokenize the text
-            chosen_sentence = raw_dataset.get_prompt_and_chosen(
-                tmp_data)  # the accept response
-            reject_sentence = raw_dataset.get_prompt_and_rejected(
-                tmp_data)  # the accept response
-            if chosen_sentence is not None and reject_sentence is not None:
-                chosen_sentence += end_of_conversation_token  # the accept response
-                reject_sentence += end_of_conversation_token
-                chosen_token = tokenizer(chosen_sentence,
-                                         max_length=max_seq_len,
-                                         padding="max_length",
-                                         truncation=True,
-                                         return_tensors="pt")
-                reject_token = tokenizer(reject_sentence,
-                                         max_length=max_seq_len,
-                                         padding="max_length",
-                                         truncation=True,
-                                         return_tensors="pt")
-                chosen_token["input_ids"] = chosen_token["input_ids"]
-                chosen_token["attention_mask"] = chosen_token["attention_mask"]
-                chosen_dataset.append(chosen_token)
+            # if i < 400:
+            #     chosen_sentence = raw_dataset.get_prompt_and_chosen(
+            #         tmp_data)  # the accept response
+            #     reject_sentence = raw_dataset.get_prompt_and_rejected(
+            #         tmp_data)  # the accept response
+            #     if chosen_sentence is not None and reject_sentence is not None:
+            #         chosen_sentence += end_of_conversation_token  # the accept response
+            #         reject_sentence += end_of_conversation_token
+            #         chosen_token = tokenizer(chosen_sentence,
+            #                                 max_length=max_seq_len,
+            #                                 padding="max_length",
+            #                                 truncation=True,
+            #                                 return_tensors="pt")
+            #         reject_token = tokenizer(reject_sentence,
+            #                                 max_length=max_seq_len,
+            #                                 padding="max_length",
+            #                                 truncation=True,
+            #                                 return_tensors="pt")
+            #         chosen_token["input_ids"] = chosen_token["input_ids"]
+            #         chosen_token["attention_mask"] = chosen_token["attention_mask"]
+            #         chosen_dataset.append(chosen_token)
+            #         reject_token["input_ids"] = reject_token["input_ids"]
+            #         reject_token["attention_mask"] = reject_token["attention_mask"]
+            #         reject_dataset.append(reject_token)
 
-                reject_token["input_ids"] = reject_token["input_ids"]
-                reject_token["attention_mask"] = reject_token["attention_mask"]
-                reject_dataset.append(reject_token)
+            if sum(label_count.values()) <= 400:
+                print(i)
+                prompt = raw_dataset.get_prompt(tmp_data)
+                chosen_sentence = raw_dataset.get_chosen(tmp_data)
+                reject_sentence = raw_dataset.get_rejected(tmp_data)
+                chosen_sentence = raw_dataset.get_prompt_and_chosen(
+                    tmp_data)  # the accept response
+                reject_sentence = raw_dataset.get_prompt_and_rejected(
+                    tmp_data)  # the accept response
+                if chosen_sentence is not None and reject_sentence is not None:
+                    try:
+                        response = openai.ChatCompletion.create(
+                            model="gpt-3.5-turbo",
+                            temperature=0.2,
+                            messages=[
+                                {"role": "system", "content": f'{system_prompt}'},
+                                {"role": "user", "content": f"Prompt: '{prompt}' Chosen: '{chosen_sentence}' Rejected: '{reject_sentence}'"},
+                            ]
+                        )
+                        result = response.choices[0].message['content']
+                        result = result.lower()
+                        label = ""
 
+                        if 'honest' in result:
+                            label = 'honest'
+                            label_count['honest'] += 1
+                        elif 'helpful' in result:
+                            label = 'helpful'
+                            label_count['helpful'] += 1
+                        elif 'creative' in result:
+                            label = 'creative'
+                            label_count['creative'] += 1
+                        elif 'positive' in result:
+                            label = 'positive'
+                            label_count['positive'] += 1
+
+                        if label == 'honest' or label == 'helpful' or label == 'creative' or label == 'positive':
+                            chosen_sentence = 'Evaluating on ' + label + '. ' + prompt + chosen_sentence +  end_of_conversation_token  # the accept response
+                            reject_sentence  = 'Evaluating on ' + label + '. ' + prompt + reject_sentence + end_of_conversation_token
+                            chosen_token = tokenizer(chosen_sentence,
+                                                    max_length=max_seq_len,
+                                                    padding="max_length",
+                                                    truncation=True,
+                                                    return_tensors="pt")
+                            reject_token = tokenizer(reject_sentence,
+                                                    max_length=max_seq_len,
+                                                    padding="max_length",
+                                                    truncation=True,
+                                                    return_tensors="pt")
+                            chosen_token["input_ids"] = chosen_token["input_ids"]
+                            chosen_token["attention_mask"] = chosen_token["attention_mask"]
+                            chosen_dataset.append(chosen_token)
+                            reject_token["input_ids"] = reject_token["input_ids"]
+                            reject_token["attention_mask"] = reject_token["attention_mask"]
+                            reject_dataset.append(reject_token)
+                    
+                    except openai.error.RateLimitError:
+                        print("Rate limit exceeded. Sleeping for a while before retrying...")
+                        time.sleep(30)  # sleep for 30 seconds 
+        
     elif train_phase == 3:
         for i, tmp_data in enumerate(current_dataset):
             # tokenize the text
@@ -210,6 +299,10 @@ def create_dataset_split(current_dataset, raw_dataset, train_phase, tokenizer,
                         y = prompt_token[key_word].squeeze(0).flip(0)
                     prompt_token[key_word] = y
                 prompt_dataset.append(prompt_token)
+    
+    for key, value in label_count.items():
+        print(f'{key}: {value}')
+    
     return PromptDataset(prompt_dataset, chosen_dataset, reject_dataset,
                          tokenizer.pad_token_id, train_phase)
 
@@ -219,27 +312,28 @@ def create_dataset(local_rank, dataset_name, data_split, output_path,
                    max_seq_len):
     raw_dataset = get_raw_dataset(dataset_name, output_path, seed, local_rank)
     train_dataset = raw_dataset.get_train_data()
-    train_index = get_raw_dataset_split_index(local_rank, output_path,
-                                              raw_dataset.dataset_name_clean,
-                                              seed, "train", data_split,
-                                              train_phase - 1,
-                                              len(train_dataset))
-    train_dataset = Subset(train_dataset, train_index)
+    # train_index = get_raw_dataset_split_index(local_rank, output_path,
+    #                                           raw_dataset.dataset_name_clean,
+    #                                           seed, "train", data_split,
+    #                                           train_phase - 1,
+    #                                           len(train_dataset))
+    # train_dataset = Subset(train_dataset, 5000)
     train_dataset = create_dataset_split(train_dataset, raw_dataset,
                                          train_phase, tokenizer,
                                          end_of_conversation_token,
                                          max_seq_len)
-
     eval_dataset = raw_dataset.get_eval_data()
-    eval_index = get_raw_dataset_split_index(local_rank, output_path,
-                                             raw_dataset.dataset_name_clean,
-                                             seed, "eval",
-                                             data_split, train_phase - 1,
-                                             len(eval_dataset))
-    eval_dataset = Subset(eval_dataset, eval_index)
+    # eval_index = get_raw_dataset_split_index(local_rank, output_path,
+    #                                          raw_dataset.dataset_name_clean,
+    #                                          seed, "eval",
+    #                                          data_split, train_phase - 1,
+    #                                          len(eval_dataset))
+    # eval_dataset = Subset(eval_dataset, eval_index)
     eval_dataset = create_dataset_split(eval_dataset, raw_dataset, train_phase,
                                         tokenizer, end_of_conversation_token,
                                         max_seq_len)
+    print("Post Cut Train Length", len(train_dataset))
+    print("Post Cut Eval Length", len(eval_dataset))
     return train_dataset, eval_dataset
 
 

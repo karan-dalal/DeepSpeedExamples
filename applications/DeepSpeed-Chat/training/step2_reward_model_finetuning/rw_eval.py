@@ -108,8 +108,8 @@ def run_pair_comparison():
     rm_model.eval()
 
     prompt_list = [
-        "Human: Please tell me about Microsoft in a few sentence? Assistant: ",
-        "Human: Explain the moon landing to a 6 year old in a few sentences. Assistant: "
+        "Evaluating on helpful. Human: Please tell me about Microsoft in a few sentence? Assistant: ",
+        "Evaluating on creative. Human: Explain the moon landing to a 6 year old in a few sentences. Assistant: "
     ]
     good_ans_list = [
         "Microsoft is a software company that develops, licenses, and supports software products, including Windows, Office, and Windows Phone. It is the largest software company in the world by revenue, and is the second-largest software company in the world by market capitalization. Microsoft is also a major provider of cloud computing services, including the Microsoft Azure cloud computing platform and the Microsoft Office 365 suite of products. The company was founded in 1975",
@@ -150,8 +150,8 @@ def run_single_sample():
                                      args.num_padding_at_beginning)
     rm_model.to(device)
 
-    prompt = "Human: Explain the moon landing to a 6 year old in a few sentences."
-    my_ans = "Assistant: The moon landing was a major milestone in the history of human exploration of the solar system. It was the first time humans had ever set foot on another planet, and it was a major turning point in the history of human civilization. The astronauts, Neil Armstrong, Buzz Aldrin, and Michael Collins, successfully landed the Apollo 11 spacecraft on the moon, marking the first time humans had ever set foot on another"
+    prompt = "Evaluating on helpful. Human: Explain the moon landing to a 6 year old in a few sentences."
+    my_ans = "Assistant: I don't really feel like that right now." 
 
     batch = prepare_singlesample(prompt,
                                  my_ans,
